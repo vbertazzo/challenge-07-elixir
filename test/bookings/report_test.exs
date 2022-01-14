@@ -30,4 +30,37 @@ defmodule Flightex.Bookings.ReportTest do
       assert file =~ content
     end
   end
+
+  # Testes adicionados pelo aluno
+
+  describe "generate_report/2" do
+    setup do
+      Flightex.start_agents()
+
+      :ok
+    end
+
+    test "when called with valid dates, returns the content" do
+      params = %{
+        complete_date: ~N[2001-05-07 12:00:00],
+        local_origin: "Brasilia",
+        local_destination: "Bananeiras",
+        user_id: "12345678900",
+        id: UUID.uuid4()
+      }
+
+      content = "12345678900,Brasilia,Bananeiras,2001-05-07 12:00:00"
+
+      Flightex.create_or_update_booking(params)
+
+      from_date = ~N[2001-05-06 12:00:00]
+      to_date = ~N[2001-05-08 12:00:00]
+      filename = "report-by-date-test.csv"
+
+      Report.generate_report(filename, from_date, to_date)
+      {:ok, file} = File.read(filename)
+
+      assert file =~ content
+    end
+  end
 end
