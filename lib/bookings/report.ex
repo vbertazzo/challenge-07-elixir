@@ -9,6 +9,8 @@ defmodule Flightex.Bookings.Report do
   end
 
   def generate_report(filename \\ "report-by-date.csv", from_date, to_date)
+
+  def generate_report(filename, from_date, to_date)
       when is_struct(from_date, NaiveDateTime) and is_struct(to_date, NaiveDateTime) do
     booking_list = build_booking_list_by_date(from_date, to_date)
 
@@ -16,6 +18,8 @@ defmodule Flightex.Bookings.Report do
 
     {:ok, "Report generated successfully"}
   end
+
+  def generate_report(_filename, _from_date, _to_date), do: {:error, "Invalid params"}
 
   defp build_booking_list_by_date(from_date, to_date) do
     BookingAgent.get_all()

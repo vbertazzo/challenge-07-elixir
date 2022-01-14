@@ -37,10 +37,6 @@ defmodule Flightex.Bookings.ReportTest do
     setup do
       Flightex.start_agents()
 
-      :ok
-    end
-
-    test "when called with valid dates, returns the content" do
       params = %{
         complete_date: ~N[2001-05-07 12:00:00],
         local_origin: "Brasilia",
@@ -49,6 +45,10 @@ defmodule Flightex.Bookings.ReportTest do
         id: UUID.uuid4()
       }
 
+      {:ok, params: params}
+    end
+
+    test "when called with valid dates, returns the content", %{params: params} do
       content = "12345678900,Brasilia,Bananeiras,2001-05-07 12:00:00"
 
       Flightex.create_or_update_booking(params)
@@ -61,6 +61,34 @@ defmodule Flightex.Bookings.ReportTest do
       {:ok, file} = File.read(filename)
 
       assert file =~ content
+    end
+
+    test "when called with valid dates but no specific filename, returns the content", %{
+      params: params
+    } do
+      content = "12345678900,Brasilia,Bananeiras,2001-05-07 12:00:00"
+
+      Flightex.create_or_update_booking(params)
+
+      from_date = ~N[2001-05-06 12:00:00]
+      to_date = ~N[2001-05-08 12:00:00]
+
+      Report.generate_report(from_date, to_date)
+      {:ok, file} = File.read("report-by-date.csv")
+
+      assert file =~ content
+    end
+
+    test "when called with invalid dates, returns an error", %{params: params} do
+      Flightex.create_or_update_booking(params)
+
+      from_date = "2001-05-08"
+      to_date = ~N[2001-05-08 12:00:00]
+      filename = "report-by-date-test.csv"
+
+      response = Report.generate_report(filename, from_date, to_date)
+
+      assert response == {:error, "Invalid params"}
     end
   end
 end
